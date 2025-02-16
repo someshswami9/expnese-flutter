@@ -1,30 +1,30 @@
 import 'package:flutter/material.dart';
 import '../models/expense.dart';
 import '../widgets/chart.dart';
-import '../widgets/expense_list.dart';
+import '../widgets/expenses_list.dart';
 import 'new_expense.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
-
+  const DashboardScreen({super.key});
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final List<Expense> _registeredExpenses = [
+  final List<Expense> _expenses = [
     Expense(
-      amount: 19.56,
+      amount: 1500,
       date: DateTime.now(),
-      title: 'Flutter Course',
-      category: Category.work,
+      title: 'Home Rent',
+      category: Category.homeRent,
     ),
     Expense(
-      amount: 16.34,
+      amount: 300,
       date: DateTime.now(),
-      title: 'Movie',
-      category: Category.leisure,
+      title: 'Lunch',
+      category: Category.lunch,
     ),
+    // Add more sample expenses as needed.
   ];
 
   void _openAddExpenseOverlay() {
@@ -37,14 +37,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _addExpense(Expense expense) {
     setState(() {
-      _registeredExpenses.add(expense);
+      _expenses.add(expense);
     });
   }
 
   void _removeExpense(Expense expense) {
-    final expenseIndex = _registeredExpenses.indexOf(expense);
+    final expenseIndex = _expenses.indexOf(expense);
     setState(() {
-      _registeredExpenses.remove(expense);
+      _expenses.remove(expense);
     });
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -55,7 +55,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           label: 'Undo',
           onPressed: () {
             setState(() {
-              _registeredExpenses.insert(expenseIndex, expense);
+              _expenses.insert(expenseIndex, expense);
             });
           },
         ),
@@ -65,12 +65,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final mainContent = _registeredExpenses.isEmpty
+    final mainContent = _expenses.isEmpty
         ? const Center(child: Text("No Expense found! Start adding some!"))
-        : ExpensesList(
-      expenses: _registeredExpenses,
-      onRemoveExpense: _removeExpense,
-    );
+        : ExpensesList(expenses: _expenses, onRemoveExpense: _removeExpense);
 
     return Scaffold(
       appBar: AppBar(
@@ -79,14 +76,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             onPressed: _openAddExpenseOverlay,
             icon: const Icon(Icons.add),
-          )
+          ),
         ],
       ),
       body: Column(
         children: [
-          Chart(expenses: _registeredExpenses),
+          Chart(expenses: _expenses),
           Expanded(child: mainContent),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openAddExpenseOverlay,
+        child: const Icon(Icons.add),
       ),
     );
   }

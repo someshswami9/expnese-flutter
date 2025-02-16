@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class IncomeScreen extends StatefulWidget {
-  const IncomeScreen({Key? key}) : super(key: key);
-
+  const IncomeScreen({super.key});
   @override
   State<IncomeScreen> createState() => _IncomeScreenState();
 }
@@ -22,7 +21,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
       return;
     }
     setState(() {
-      _income = enteredIncome;
+      _income = (_income ?? 0) + enteredIncome;
     });
     _incomeController.clear();
   }

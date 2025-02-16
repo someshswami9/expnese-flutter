@@ -8,12 +8,8 @@ class Chart extends StatelessWidget {
   final List<Expense> expenses;
 
   List<ExpenseBucket> get buckets {
-    return [
-      ExpenseBucket.forCategory(expenses, Category.food),
-      ExpenseBucket.forCategory(expenses, Category.leisure),
-      ExpenseBucket.forCategory(expenses, Category.travel),
-      ExpenseBucket.forCategory(expenses, Category.work),
-    ];
+    // Create a bucket for each category
+    return Category.values.map((cat) => ExpenseBucket.forCategory(expenses, cat)).toList();
   }
 
   double get maxTotalExpense {
@@ -23,8 +19,7 @@ class Chart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode =
-        MediaQuery.of(context).platformBrightness == Brightness.dark;
+    final isDarkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
@@ -35,7 +30,7 @@ class Chart extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             Theme.of(context).colorScheme.primary.withOpacity(0.3),
-            Theme.of(context).colorScheme.primary.withOpacity(0.0)
+            Theme.of(context).colorScheme.primary.withOpacity(0.0),
           ],
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
@@ -46,20 +41,20 @@ class Chart extends StatelessWidget {
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
-              children: buckets
-                  .map((bucket) => ChartBar(
-                fill: bucket.totalExpenses == 0
-                    ? 0
-                    : bucket.totalExpenses / maxTotalExpense,
-              ))
-                  .toList(),
+              children: buckets.map((bucket) {
+                // Optionally exclude "Home Rent" from the top 3 calculation in your dashboard logic.
+                return ChartBar(
+                  fill: bucket.totalExpenses == 0
+                      ? 0
+                      : bucket.totalExpenses / maxTotalExpense,
+                );
+              }).toList(),
             ),
           ),
           const SizedBox(height: 12),
           Row(
-            children: buckets
-                .map(
-                  (bucket) => Expanded(
+            children: buckets.map((bucket) {
+              return Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: Icon(
@@ -69,9 +64,8 @@ class Chart extends StatelessWidget {
                         : Theme.of(context).colorScheme.primary.withOpacity(0.7),
                   ),
                 ),
-              ),
-            )
-                .toList(),
+              );
+            }).toList(),
           ),
         ],
       ),
