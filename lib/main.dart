@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'models/expense.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/income_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(CategoryAdapter());
+  Hive.registerAdapter(ExpenseAdapter());
+  await Hive.openBox<Expense>('expensesBox');
+  await Hive.openBox<double>('incomeBox');
   runApp(const ExpenseTrackerApp());
 }
 

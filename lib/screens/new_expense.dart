@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 
-final DateFormat formatter = DateFormat.yMd();
+final DateFormat formatter = DateFormat.yMMMd();
+
+const List<String> paymentMethods = [
+  'Debit Card',
+  'Cash',
+  'Paytm Scanner',
+  'PhonePe Scanner',
+  'PhonePe App',
+  'Paytm',
+  'Google Pay',
+  'Amazon Pay',
+];
 
 class NewExpense extends StatefulWidget {
   const NewExpense({required this.onAddExpense, super.key});
@@ -21,11 +33,21 @@ class _NewExpenseState extends State<NewExpense> {
   final _customCategoryController = TextEditingController();
   final _friendNamesController = TextEditingController(); // Comma separated friend names
 
+  // Payment method state variable
+  String _selectedPaymentMethod = paymentMethods[0];
+
+  @override
+  void initState() {
+    super.initState();
+    // Set default date to today
+    _selectedDate = DateTime.now();
+  }
+
   void _presentDatePicker() async {
     final now = DateTime.now();
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: now,
+      initialDate: _selectedDate ?? now,
       firstDate: now.subtract(const Duration(days: 365)),
       lastDate: now,
     );
@@ -46,8 +68,7 @@ class _NewExpenseState extends State<NewExpense> {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Invalid Input'),
-          content: const Text(
-              'Please enter a valid title, amount, date, and select a category.'),
+          content: const Text('Please enter a valid title, amount, date, and select a category.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
@@ -58,7 +79,6 @@ class _NewExpenseState extends State<NewExpense> {
       );
       return;
     }
-    // For "Friends", split the names by comma.
     List<String>? friendNames;
     if (_selectedCategory == Category.friends) {
       friendNames = _friendNamesController.text
@@ -67,20 +87,22 @@ class _NewExpenseState extends State<NewExpense> {
           .where((name) => name.isNotEmpty)
           .toList();
     }
-    // For "Others", capture custom category text.
     String? customCategory;
     if (_selectedCategory == Category.others) {
       customCategory = _customCategoryController.text.trim();
     }
+    print("THE AMOUNT ENTERED $enteredAmount");
     final expense = Expense(
       amount: enteredAmount,
       date: _selectedDate!,
       title: _titleController.text,
       category: _selectedCategory,
+      paymentMethod: _selectedPaymentMethod, // Use the selected payment method
       friendNames: friendNames,
       customCategory: customCategory,
     );
     widget.onAddExpense(expense);
+
     Navigator.of(context).pop();
   }
 
@@ -118,7 +140,7 @@ class _NewExpenseState extends State<NewExpense> {
                     maxLength: 20,
                     decoration: const InputDecoration(
                       labelText: 'Amount',
-                      prefixText: '\$ ',
+                      prefixText: 'INR ',
                     ),
                   ),
                 ),
@@ -128,9 +150,7 @@ class _NewExpenseState extends State<NewExpense> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Text(
-                        _selectedDate == null
-                            ? 'No Date Selected'
-                            : formatter.format(_selectedDate!),
+                        formatter.format(_selectedDate!),
                       ),
                       IconButton(
                         onPressed: _presentDatePicker,
@@ -142,8 +162,11 @@ class _NewExpenseState extends State<NewExpense> {
               ],
             ),
             const SizedBox(height: 16),
+            // Category Dropdown
             Row(
               children: [
+                const Text('Category: '),
+                const SizedBox(width: 16),
                 DropdownButton<Category>(
                   value: _selectedCategory,
                   items: Category.values
@@ -162,6 +185,31 @@ class _NewExpenseState extends State<NewExpense> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            // Payment Method Dropdown
+            Row(
+              children: [
+                const Text('Payment Method: '),
+                const SizedBox(width: 16),
+                DropdownButton<String>(
+                  value: _selectedPaymentMethod,
+                  items: paymentMethods
+                      .map((method) => DropdownMenuItem(
+                    value: method,
+                    child: Text(method),
+                  ))
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedPaymentMethod = value;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             if (_selectedCategory == Category.friends) ...[
               const SizedBox(height: 8),
               TextField(

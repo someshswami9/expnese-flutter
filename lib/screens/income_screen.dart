@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:hive/hive.dart';
 
 class IncomeScreen extends StatefulWidget {
   const IncomeScreen({super.key});
@@ -9,8 +10,18 @@ class IncomeScreen extends StatefulWidget {
 
 class _IncomeScreenState extends State<IncomeScreen> {
   final _incomeController = TextEditingController();
-  double? _income;
+  double _income = 0.0; // Default to 0.0 if no income is stored
   final DateFormat _dateFormat = DateFormat.yMMM();
+
+  @override
+  void initState() {
+    super.initState();
+    // Retrieve stored income from Hive
+    final incomeBox = Hive.box<double>('incomeBox');
+    setState(() {
+      _income = incomeBox.get('balance', defaultValue: 0.0) as double;
+    });
+  }
 
   void _saveIncome() {
     final enteredIncome = double.tryParse(_incomeController.text);
@@ -21,8 +32,11 @@ class _IncomeScreenState extends State<IncomeScreen> {
       return;
     }
     setState(() {
-      _income = (_income ?? 0) + enteredIncome;
+      _income += enteredIncome;
     });
+    // Save the updated income to Hive
+    final incomeBox = Hive.box<double>('incomeBox');
+    incomeBox.put('balance', _income);
     _incomeController.clear();
   }
 
@@ -59,11 +73,10 @@ class _IncomeScreenState extends State<IncomeScreen> {
               child: const Text('Save Income'),
             ),
             const SizedBox(height: 20),
-            if (_income != null)
-              Text(
-                'Your income for $currentMonth is \$${_income!.toStringAsFixed(2)}',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
+            Text(
+              'Your income for $currentMonth is \$${_income.toStringAsFixed(2)}',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
           ],
         ),
       ),
